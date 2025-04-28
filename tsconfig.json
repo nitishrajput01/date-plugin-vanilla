@@ -1,11 +1,14 @@
 {
   "compilerOptions": {
+    "declaration": true,
+    "declarationDir": "dist/types",
     "module": "commonjs",
     "esModuleInterop": true,
     "target": "ESNext",
     "moduleResolution": "node",
     "sourceMap": true,
-    "outDir": "src/dist"
+    "outDir": "dist",
+    "skipLibCheck": true,
   },
   "lib": ["es2017"]
 }
