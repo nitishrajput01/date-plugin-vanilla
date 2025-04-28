@@ -43,7 +43,7 @@ console.log(updatedDate); // new Date object 5 days and 2 months later
 
 // const formatDateDate = formatDate(new Date(), "YYYY/MM/DD")
 
-console.log(formatDateDate.date);
+console.log(formatDateDate);
 ```
 
 
