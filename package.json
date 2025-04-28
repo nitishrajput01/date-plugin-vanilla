@@ -9,6 +9,10 @@
     "test": "npx tsc && jest src/dist/index.test.js",
     "clean": "tsc --build --clean && npm run test"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nitishrajput01/date-plugin-vanilla.git"
+  },
   "keywords": [
     "Date",
     "Time",
