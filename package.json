@@ -1,13 +1,12 @@
 {
   "name": "date-time-plugin-minify",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A date time pulgin modify date and time in easy formats",
   "main": "dist/index.js",
   "types": "dist/types/index.d.ts",
   "files": ["dist"],
   "scripts": {
     "start": "npx tsc",
-    "dev": "node --watch src/index.ts",
     "test": "npx tsc && jest dist/index.test.js",
     "clean": "tsc --build --clean && npm run test",
     "build": "tsc"

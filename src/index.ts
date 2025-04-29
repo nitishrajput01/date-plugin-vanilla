@@ -2,7 +2,7 @@ export function formatDate(date: Date | string, format: dateFormat) {
     let d = new Date(date);
     const map = {
         YYYY: d.getFullYear(),
-        [format.indexOf("MMM") !== -1 ? 'MMM' : 'MM']: format.indexOf("MMM") !== -1 ?  getMonthMap().get(d.getMonth() + 1) : String(d.getMonth() + 1).padStart(2, '0'),
+        [format.indexOf("MMM") !== -1 ? 'MMM' : 'MM']: format.indexOf("MMM") !== -1 ? getMonthMap().get(d.getMonth() + 1) : String(d.getMonth() + 1).padStart(2, '0'),
         DD: String(d.getDate()).padStart(2, '0'),
         HH: String(d.getHours()).padStart(2, '0'),
         mm: String(d.getMinutes()).padStart(2, '0'),
@@ -91,101 +91,97 @@ GetFormattedDate.prototype.addYear = function (years: number) {
 
 GetFormattedDate.prototype.toLocaleString = function (locale: locale, zone?: timeZones) {
     try {
-        if(!locale) throw new Error("locale is missin");
+        if (!locale) throw new Error("locale is missin");
     } catch (error) {
-        throw new Error("locale is missing" , {cause: error.message});
+        throw new Error("locale is missing", { cause: error.message });
     }
     if (!zone)
-        return this.date.toLocaleString(locale, {timeZone: "UTC"});
+        return this.date.toLocaleString(locale, { timeZone: "UTC" });
     return this.date.toLocaleString(locale, { timeZone: zone })
 }
 
-export function getDiffBetweenDates(firstDate: Date | string, secondDate: Date | string, options?: diffOptions): string {
+export function getDiffBetweenDates(firstDate: Date | string, secondDate: Date | string, options?: { format: dateFormat }) {
     try {
-        if (!firstDate) throw new Error('First date is missed');
-        if (!secondDate) throw new Error('Second date is missed');
+        if (!firstDate) throw new Error('First date is missing');
+        if (!secondDate) throw new Error('Second date is missing');
 
-        const fd = new Date(firstDate);
-        const sd = new Date(secondDate);
-        const diffTime = Math.abs(sd.getTime() - fd.getTime());
-
-        const diffSec = diffTime / 1000;
-        const diffMin = diffSec / 60;
-        const diffHours = diffMin / 60;
-        const diffDays = diffHours / 24;
-        const diffMonths = diffDays / 30;
-        const diffYears = diffDays / 365;
-
-        let value: number;
-        let unit: string;
-
-        if (options?.format) {
-            switch (options.format) {
-                case 'seconds':
-                    value = diffSec;
-                    unit = 'second';
-                    break;
-                case 'minutes':
-                    value = diffMin;
-                    unit = 'minute';
-                    break;
-                case 'hours':
-                    value = diffHours;
-                    unit = 'hour';
-                    break;
-                case 'days':
-                    value = diffDays;
-                    unit = 'day';
-                    break;
-                case 'months':
-                    value = diffMonths;
-                    unit = 'month';
-                    break;
-                default:
-                    value = diffDays;
-                    unit = 'day';
-            }
-        } else {
-            const absDiffSec = Math.abs(diffSec);
-            const absDiffMin = Math.abs(diffMin);
-            const absDiffHours = Math.abs(diffHours);
-            const absDiffDays = Math.abs(diffDays);
-            const absDiffMonths = Math.abs(diffMonths);
-            const absDiffYears = Math.abs(diffYears);
-
-            if (absDiffSec < 60) {
-                value = diffSec;
-                unit = 'second';
-            } else if (absDiffMin < 60) {
-                value = diffMin;
-                unit = 'minute';
-            } else if (absDiffHours < 24) {
-                value = diffHours;
-                unit = 'hour';
-            } else if (absDiffDays < 30) {
-                value = diffDays;
-                unit = 'day';
-            } else if (absDiffMonths < 12) {
-                value = diffMonths;
-                unit = 'month';
-            } else {
-                value = diffYears;
-                unit = 'year';
-            }
+        if (typeof firstDate !== 'string' && !(firstDate instanceof Date)) {
+            throw new Error('First date must be a string or Date object');
+        }
+        if (typeof secondDate !== 'string' && !(secondDate instanceof Date)) {
+            throw new Error('Second date must be a string or Date object');
         }
 
-        const roundedValue = Math.floor(Math.abs(value));
-        const plural = roundedValue === 1 ? '' : 's'; // pluralize if needed
+        if (!options) {
 
-        if (diffTime > 0) {
-            return `${roundedValue} ${unit}${plural} ago`;
-        } else {
-            return `in ${roundedValue} ${unit}${plural}`;
+            let fd: any, sd: any;
+            if (typeof firstDate === 'string') {
+                const [day, month, year] = firstDate.split('/');
+                fd = new Date(`${year}-${month}-${day}`);
+            } else {
+                fd = new Date(firstDate);
+            }
+
+            if (typeof secondDate === 'string') {
+                const [day, month, year] = secondDate.split('/');
+                sd = new Date(`${year}-${month}-${day}`);
+            } else {
+                sd = new Date(secondDate);
+            }
+
+            return calculateDiff(fd, sd);
+
+        }
+
+        if (options && options.format) {
+            const formatArr = ['YYYY-MM-DD', 'DD/MM/YYYY', 'MM/DD/YYYY', 'MM-DD-YYYY', 'DD MMM, YYYY', 'YYYY/MM/DD', 'YYYY/MM/DD HH:mm:ss'];
+            if (formatArr.indexOf(options.format) !== -1) {
+                let fd = formatDate(firstDate, options.format);
+                let sd = formatDate(secondDate, options.format);
+                return calculateDiff(fd, sd);
+            } else {
+                throw new Error("Date format is not supported")
+            }
+
         }
 
     } catch (error) {
-        throw new Error('First and Second date both are needed', { cause: error.message })
+        console.error(error);
+        return null;
     }
+}
+
+
+function calculateDiff(fd, sd) {
+    fd = new Date(fd);
+    sd = new Date(sd);
+    if (fd > sd) [fd, sd] = [sd, fd]; // Always fd <= sd
+
+    const diffTime = sd - fd;
+    const diffSec = diffTime / 1000;
+    const diffMin = diffSec / 60;
+    const diffHours = diffMin / 60;
+    const diffDays = diffHours / 24;
+
+
+    let years = sd.getFullYear() - fd.getFullYear();
+    let months = sd.getMonth() - fd.getMonth();
+    if (sd.getDate() < fd.getDate()) {
+        months--;
+    }
+    if (months < 0) {
+        years--;
+        months += 12;
+    }
+
+    return {
+        seconds: diffSec,
+        minutes: diffMin,
+        hours: diffHours,
+        days: diffDays,
+        months: years * 12 + months,
+        years: years
+    };
 
 }
 
@@ -193,15 +189,15 @@ export function getDiffBetweenDates(firstDate: Date | string, secondDate: Date |
 
 
 
-type dateFormat = 'YYYY-MM-DD' | 'DD/MM/YYYY' | 'MM-DD-YYYY' | 'DD MMM, YYYY' | 'YYYY/MM/DD' | 'YYYY/MM/DD HH:mm:ss' | 'HH:mm:ss';
+type dateFormat = 'YYYY-MM-DD' | 'DD/MM/YYYY' | 'MM/DD/YYYY' |'MM-DD-YYYY' | 'DD MMM, YYYY' | 'YYYY/MM/DD' | 'YYYY/MM/DD HH:mm:ss' | 'HH:mm:ss';
 
 type locale = 'en-US' | 'en-GB' | 'fr-FR' | 'de-DE' | 'es-ES' | 'ja-JP' | 'zh-CN' | 'zh-TW' | 'hi-IN' | 'ar-SA' | 'ru-RU' | 'pt-BR' | 'th-TH' |
     'vi-VN' | 'sv-SE' | 'pl-PL' | 'ko-KR' | 'pt-BR' | 'ru-RU' | 'ar-SA' | 'it-IT' | 'nl-NL' | 'tr-TR'
 
 
 type timeZones = 'Asia/Tokyo' | 'Asia/Kolkata' | 'America/New_York' | 'America/Chicago' | 'Europe/London' |
-'Asia/Dubai' | 'Asia/Singapore' | 'Asia/Bangkok' | 'America/Los_Angeles' | 'America/Denver' | 'Europe/Paris' | 'Europe/Berlin' | 'Australia/Sydney' |
-'Africa/Johannesburg' | 'America/Toronto' | 'America/Sao_Paulo' | 'Europe/Moscow' | 'Pacific/Auckland' | 'UTC' | 'Asia/Shanghai'
+    'Asia/Dubai' | 'Asia/Singapore' | 'Asia/Bangkok' | 'America/Los_Angeles' | 'America/Denver' | 'Europe/Paris' | 'Europe/Berlin' | 'Australia/Sydney' |
+    'Africa/Johannesburg' | 'America/Toronto' | 'America/Sao_Paulo' | 'Europe/Moscow' | 'Pacific/Auckland' | 'UTC' | 'Asia/Shanghai'
 
 type diffFormatType = 'days' | 'months' | 'hours' | 'minutes' | 'seconds'
 

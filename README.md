@@ -26,7 +26,7 @@ yarn add date-time-plugin-minify
 # Usage - 
 
 ```javascript
-import {formatDate, GetFormattedDate} from 'date-time-plugin-minify';
+import {formatDate, GetFormattedDate, getDiffBetweenDates} from 'date-time-plugin-minify';
 ```
 
 ```javascript
@@ -44,6 +44,18 @@ console.log(updatedDate); // new Date object 5 days and 2 months later
 // const formatDateDate = formatDate(new Date(), "YYYY/MM/DD")
 
 console.log(formatDateDate);
+
+// params firstDate: Date | string, Second Date : Date | string
+getDiffBetweenDates("25/05/2025", "28/05/2025", options ? :{format: "DD/MM/YYYY"})  // default format DD/MM/YYYY, provide format as 3rd param"
+ return {
+            seconds: diffSec, // 43943
+            minutes: diffMin, // 4343
+            hours: diffHours, // 72
+            days: diffDays, // 3
+            months: years * 12 + months, // 0
+            years: years // 0
+      }
+
 ```
 
 
