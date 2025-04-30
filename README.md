@@ -87,9 +87,9 @@ getDiffBetweenDates("25/05/2025", "28/05/2025", options ? :{format: "DD/MM/YYYY"
 
 ```
 
-~~const formatDateDate = formatDate(new Date(), "YYYY/MM/DD")
+~~const formatDateDate = formatDate(new Date(), "YYYY/MM/DD")~~
 
-console.log(formatDateDate);~~
+~~console.log(formatDateDate)~~;
 
 ** -
 - Now Support for passing locale (like en-US, fr-FR) 
