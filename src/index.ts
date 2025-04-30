@@ -1,19 +1,107 @@
-export function formatDate(date: Date | string, format: dateFormat) {
-    let d = new Date(date);
-    const map = {
-        YYYY: d.getFullYear(),
-        [format.indexOf("MMM") !== -1 ? 'MMM' : 'MM']: format.indexOf("MMM") !== -1 ? getMonthMap().get(d.getMonth() + 1) : String(d.getMonth() + 1).padStart(2, '0'),
-        DD: String(d.getDate()).padStart(2, '0'),
-        HH: String(d.getHours()).padStart(2, '0'),
-        mm: String(d.getMinutes()).padStart(2, '0'),
-        ss: String(d.getSeconds()).padStart(2, '0')
-    };
-    let formattedPattern: string = format;
-    for (const key in map) {
-        formattedPattern = formattedPattern.replace(key, map[key]);
+export class DateFormatter {
+    private date: Date;
+    private format: dateFormat;
+    private formatted?: string;
+
+    constructor(date: Date | string, format: dateFormat, currentFormat?: dateFormat) {
+        if (typeof date === 'string' && currentFormat) {
+            switch (currentFormat) {
+                case 'YYYY-MM-DD': {
+                    const [year, month, day] = date.split('-').map(Number);
+                    this.date = new Date(year, month - 1, day);
+                    break;
+                }
+                case 'DD/MM/YYYY': {
+                    const [day, month, year] = date.split('/').map(Number);
+                    this.date = new Date(year, month - 1, day);
+                    break;
+                }
+                case 'MM/DD/YYYY': {
+                    const [month, day, year] = date.split('/').map(Number);
+                    this.date = new Date(year, month - 1, day);
+                    break;
+                }
+                case 'MM-DD-YYYY': {
+                    const [month, day, year] = date.split('-').map(Number);
+                    this.date = new Date(year, month - 1, day);
+                    break;
+                }
+                case 'DD MMM, YYYY': {
+                    const [day, monthStr, year] = date.replace(',', '').split(' ');
+                    const monthMap = new Map(Array.from(getMonthMap().entries()).map(([k, v]) => [v.toLowerCase(), k]));
+                    const month = monthMap.get(monthStr.toLowerCase());
+                    if (!month) throw new Error(`Invalid month: ${monthStr}`);
+                    this.date = new Date(Number(year), month - 1, Number(day));
+                    break;
+                }
+                case 'YYYY/MM/DD': {
+                    const [year, month, day] = date.split('/').map(Number);
+                    this.date = new Date(year, month - 1, day);
+                    break;
+                }
+                case 'YYYY/MM/DD HH:mm:ss': {
+                    const [datePart, timePart] = date.split(' ');
+                    const [year, month, day] = datePart.split('/').map(Number);
+                    const [hours, minutes, seconds] = timePart.split(':').map(Number);
+                    this.date = new Date(year, month - 1, day, hours, minutes, seconds);
+                    break;
+                }
+                case 'HH:mm:ss': {
+                    const [hours, minutes, seconds] = date.split(':').map(Number);
+                    const now = new Date();
+                    this.date = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, seconds);
+                    break;
+                }
+                default:
+                    throw new Error(`Unsupported currentFormat: ${currentFormat}`);
+            }
+        } else {
+            this.date = new Date(date);
+        }
+
+        this.format = format;
     }
-    return formattedPattern;
+
+    public formatDate(): this {
+        const d = this.date;
+        const format = this.format;
+
+        const map: Record<string, string> = {
+            YYYY: d.getFullYear().toString(),
+            [format.includes("MMM") ? 'MMM' : 'MM']: format.includes("MMM")
+                ? getMonthMap().get(d.getMonth() + 1)
+                : String(d.getMonth() + 1).padStart(2, '0'),
+            DD: String(d.getDate()).padStart(2, '0'),
+            HH: String(d.getHours()).padStart(2, '0'),
+            mm: String(d.getMinutes()).padStart(2, '0'),
+            ss: String(d.getSeconds()).padStart(2, '0'),
+        };
+
+        let formattedPattern: string = format;
+        for (const key in map) {
+            formattedPattern = formattedPattern.replace(key, map[key]);
+        }
+        this.formatted = formattedPattern;
+        return this;
+    }
+
+    public TZ(timeZone: timeZones, locale: locale = 'en-US'): string {
+        return new Intl.DateTimeFormat(locale, {
+            timeZone,
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+        }).format(this.date);
+    }
+
+    public getFormatted(): string {
+        return this.formatted ?? this.date.toString();
+    }
 }
+
 
 function getMonthMap() {
     const map = new Map<any, any>();
@@ -41,7 +129,7 @@ export function GetFormattedDate(date: Date | string, format?: dateFormat) {
             this.date = new Date(date);
         }
         else {
-            this.date = formatDate(date, format);
+            this.date = new DateFormatter(date, format).formatDate().getFormatted();
         }
     } catch (error) {
         throw new Error("Date is not provided", { cause: error.message });
@@ -136,8 +224,8 @@ export function getDiffBetweenDates(firstDate: Date | string, secondDate: Date |
         if (options && options.format) {
             const formatArr = ['YYYY-MM-DD', 'DD/MM/YYYY', 'MM/DD/YYYY', 'MM-DD-YYYY', 'DD MMM, YYYY', 'YYYY/MM/DD', 'YYYY/MM/DD HH:mm:ss'];
             if (formatArr.indexOf(options.format) !== -1) {
-                let fd = formatDate(firstDate, options.format);
-                let sd = formatDate(secondDate, options.format);
+                let fd = new DateFormatter(firstDate, options.format).formatDate().getFormatted();
+                let sd = new DateFormatter(secondDate, options.format).formatDate().getFormatted();
                 return calculateDiff(fd, sd);
             } else {
                 throw new Error("Date format is not supported")
@@ -150,7 +238,6 @@ export function getDiffBetweenDates(firstDate: Date | string, secondDate: Date |
         return null;
     }
 }
-
 
 function calculateDiff(fd, sd) {
     fd = new Date(fd);

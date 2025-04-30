@@ -1,5 +1,5 @@
 import {describe, expect, test} from '@jest/globals';
-import {formatDate, GetFormattedDate, getDiffBetweenDates} from './index';
+import {GetFormattedDate, getDiffBetweenDates} from './index';
 
 describe('generate format date', () => {
   test('get formatted date should be equal to current date', () => {
