@@ -30,7 +30,7 @@ yarn add date-time-plugin-minify
 # Usage - 
 
 ```javascript
-import {DateDateFormatter, GetFormattedDate, getDiffBetweenDates} from 'date-time-plugin-minify';
+import {DateFormatter, GetFormattedDate, getDiffBetweenDates} from 'date-time-plugin-minify';
 ```
 
 ```javascript
