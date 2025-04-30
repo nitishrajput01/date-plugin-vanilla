@@ -57,7 +57,7 @@ console.log(df.TZ("Europe/Berlin", "de-DE")) // 23.04.2026, 20:30:00 // default 
 
 ~~formateDate~~
 
-deprecated formatDate not support in version 1.1.4
+deprecated formatDate not support from version 1.1.6
 
 ```javascript
 
