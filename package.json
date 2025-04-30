@@ -1,6 +1,6 @@
 {
   "name": "date-time-plugin-minify",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "A date time pulgin modify date and time in easy formats",
   "main": "dist/index.js",
   "types": "dist/types/index.d.ts",
